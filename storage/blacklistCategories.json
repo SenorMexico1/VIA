@@ -1,0 +1,31 @@
+{
+  "0":{},
+  "1":{
+    "string": "[1] Exploiters in and out of Vaktovia",
+    "number": 1
+  },
+  "2":{
+    "string": "[2] People committing real life illegal acts",
+    "number": 2
+  },
+  "3":{
+    "string": "[3] People abusing their power in Vaktovia",
+    "number": 3
+  },
+  "4":{
+    "string": "[4] Scammers",
+    "number": 4
+  },
+  "5":{
+    "string": "[5] Individuals whom are extremely against Vaktovia",
+    "number": 5
+  },
+  "6":{
+    "string": "[6] Alternative, shared, or purchased accounts",
+    "number": 6
+  },
+  "7":{
+    "string": "[7] Individuals whom steal assets, valor, or sell stolen assets",
+    "number": 7
+  }
+}

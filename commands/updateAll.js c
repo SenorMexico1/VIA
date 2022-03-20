@@ -1,0 +1,74 @@
+const fetch = require("node-fetch"),
+      serverRoles = require("../storage/CommunityRoles.json");
+
+module.exports = {
+  name: "updateall",
+  description: "checks for a group of people whether they're in vak",
+  async execute(bot, message, args, Discord, Roblox, categoryId) {
+    
+    message.channel.send("Scanning members...");
+    const userData = bot.guilds.cache.get("527289061329731587").members.cache.array();
+    const userList = userData.filter( member => member.roles.cache.find(role => role.name === "Civilian") === undefined && member.roles.cache.find(role => role.name === "Retired Vaktovian") === undefined && member.roles.cache.find(role => role.name === "Bot") === undefined && member.roles.cache.filter(role => role.name !== "@everyone").size > 0);
+    let interval = 3000;
+    let rcount = 0;
+    let ncount = 0;
+    let loopCount = 0; 
+    userList.forEach(async member => { 
+      loopCount++;
+      setTimeout(function() { 
+        let url = `https://verify.eryn.io/api/user/${member.user.id}`;
+        let settings = { method: "Get" };  
+        fetch(url, settings)
+          .then(res => res.json())
+          .then(async json => {
+            if(!json.error){ 
+              await Roblox.getUsernameFromId(json.robloxId).then(async username => {
+                loopCount++;
+                let rolesRemoved = "";
+                let rolesRemovedCount = 0;
+                try {
+                  serverRoles.forEach(async role => {  
+                    if(member.roles.cache.has(role.roleId)) { rcount++; rolesRemovedCount++; rolesRemoved+=`${role.name}\n`; await member.roles.remove(role.roleId); }
+                  })
+                }  
+                catch {
+
+                }
+                finally {
+                  const anyRolesRemoved = anyRemoved(rolesRemovedCount); 
+                  const areNamesEqual = isEqual(member.displayName, username);
+                  let nameChangedString = "";
+                  if(!areNamesEqual) { ncount++; nameChangedString = `Name changed from ${member.displayName} to ${username}.`; await member.setNickname(username);}
+                  let startEmoji = "✅ | "
+                  if(anyRolesRemoved) { rolesRemoved = "```" + rolesRemoved + "```"; startEmoji = "❌ | "; } 
+                  if(!areNamesEqual) { message.channel.send(`❌ | **${username}** (Roblox ID: ${json.robloxId}) was updated. ${nameChangedString}`); bot.guilds.cache.get("485928637162455060").channels.cache.get("869396944848580668").send(`❌ | **${username}** (Roblox ID: ${json.robloxId}) was updated. ${nameChangedString} <@${member.user.id}>`) }
+                  else message.channel.send(`✅ | **${username}** (Roblox ID: ${json.robloxId}) is all up to date.`);
+                  //message.channel.send(`${startEmoji}**${username}** (Roblox ID: ${json.robloxId}) had ${rolesRemovedCount} roles removed. ${nameChangedString}${anyRolesRemoved ? '\nRoles removed:\n' : ""}${rolesRemoved} `)
+                } 
+              })
+            } 
+          else {
+            message.channel.send(`❌ | **${member.displayName}** is not verified. Roles have been removed.`)
+            bot.guilds.cache.get("485928637162455060").channels.cache.get("869396944848580668").send(`❌ | **${member.displayName}** is **not** verified. Roles have been removed. <@${member.user.id}>`)
+            const role1 = member.roles.cache.find(role => role.name === 'Trooper') || member.roles.cache.find(role => role.name === 'VAC') || member.roles.cache.find(role => role.name === 'Noncommisioned Officer');
+            if (role1) await member.roles.remove(role1);
+          }
+        }).catch(err => {
+          console.log(err);
+        })
+        console.log(interval * loopCount + "Interval: " + interval + " | Loop: " + loopCount);
+      }, interval * loopCount); 
+    });
+    setTimeout(function(){
+      message.channel.send(`Sweep concluded. Nicknames changed: ${ncount} | Users with illegal roles: ${rcount}.`)
+      bot.guilds.cache.get("485928637162455060").channels.cache.get("869396944848580668").send(`Sweep concluded. Nicknames changed: ${ncount + 106} | Users with illegal roles: ${rcount}.`)
+    },interval*loopCount+5000)
+  } 
+};  
+
+function anyRemoved(n){ 
+  return n > 0; 
+}
+function isEqual(a,b){
+  return a == b;
+}
